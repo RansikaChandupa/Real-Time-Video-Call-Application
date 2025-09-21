@@ -1,9 +1,20 @@
 const express = require('express');
 const socketIo = require('socket.io');
 const path = require('path');
+const cors = require('cors');
 const { Socket } = require('react-chat-engine');
 
+require('dotenv').config();
 const app = express();
+app.use(cors());
+
+app.get('/api/config', (req, res) => {
+    res.json({
+        supabaseURL: process.env.SUPABASE_URL,
+        supabaseKey: process.env.SUPABASE_KEY
+    });
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) =>{
     res.redirect('/login.html');
