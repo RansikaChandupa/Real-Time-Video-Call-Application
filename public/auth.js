@@ -108,5 +108,70 @@ function setupAuthForm(){
         return;
     }
 
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        try{
+            loginError.textContent = "";
+            const{data, error} = await supabase.auth.signInWithPassword({email, password});
+            if(error)throw error;
+            window.location.href = "index.html";
+        }
+        catch (error){
+            console.error("Error while login:",error.message);
+            loginError.textContent = error.message || "Failed to log in. Please try again."
+        }
+    })
 
+    signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('signup-username').value;
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        try{
+        signupError.textContent = "";
+        const {data, error} = await supabase.auth.signUp({
+            email,
+            password,
+            options:{
+                data:{username}
+            }
+        });
+        if(error)throw error;
+        if(data.user){
+            if(data.session){
+                window.location.href = "index.html"
+            }
+            else{
+              signupForm.innerHTML = `
+                <div class="success-message"><h3>Registration successful!</h3>
+                <p>Please check your email to confirm your account. Before logging in</p>
+                <button class="auth-submit" onclick="document.getElementById('login-tab').click()">
+                    Go to Login
+                </button>
+                </div>
+              `
+            }
+        }
+        }
+
+        catch(error){
+            console.error("Error while signing up:", error.message);
+            signupError.textContent = error.message || "Failed to sign up. Please try again"
+        }
+        });
 }
+
+async function logout(){
+    try{
+        const {error} = await supabase.auth.signOut();
+        if(error) throw error;
+        window.location.href = "login.html"
+    }
+    catch(error){
+        console.error("Error while logging out:",error.message);
+        alert("Failed to logout. Please try again");
+    }
+}
+window.logout = logout;
