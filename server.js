@@ -10,7 +10,7 @@ app.use(cors());
 
 app.get('/api/config', (req, res) => {
     res.json({
-        supabaseURL: process.env.SUPABASE_URL,
+        supabaseUrl: process.env.SUPABASE_URL,
         supabaseKey: process.env.SUPABASE_KEY
     });
 });
