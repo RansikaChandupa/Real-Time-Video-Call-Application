@@ -74,6 +74,74 @@ async function startCall(roomId){
     setUpSocketEvents();
 }
 
+function setUpSocketEvents(){
+    socket.on("join-approved", (userId, hostId) => {
+        console.log("Join approved by host", hostId);
+        if(userId !== myUserId) return;
+        socket.emit("join-room", roomId, myUserId, "user");
+        setupScreen.classList.add("hidden");
+        callScreen.classList.remove("hidden");
+        activeRoomDisplay.textContent = roomId;
+        createPeerConnections();
+        createAndSendOffer(hostId);
+    });
+    socket.on("user-request-join",(userId, hostId) => {
+        if(isRoomHost){
+            console.log("User requesting to join", userId);
+            createJoinRequest(userId, roomId);
+        }
+    });
+    socket.on("user-connected", userId =>{
+        console.log("user-connected", userId);
+        if(userId === myUserId)return;
+        if(isRoomHost){
+            console.log("Host waiting for offer from new user", userId);
+            currentRemoteUserId = userId;
+            if(!localPeerConnections){
+                createPeerConnections();
+            }
+        }
+    });
+    socket.on("ice-candidate", (senderUserId, candidate) => {
+        console.log("Received ICE candidate from", senderUserId);
+        if(senderUserId === myUserId) return;
+        handleReceivedIceCandidate(senderUserId, candidate);
+    });
+    socket.on("offer", (senderUserId, targetId, offer) => {
+        console.log("Received offer from", senderUserId, "for", targetId);
+        if( targetId !== myUserId && targetId !== undefined) return;
+        if(senderUserId === myUserId) return;
+        handleReceivedOffer(senderUserId, offer); // I guess instructor made a mistake here. He used handleReceivedAnswer(senderUserId, answer);   
+    });
+
+    socket.on("answer", (senderUserId, targetId, answer) => {
+        console.log("Received answer from", senderUserId, "for", targetId);
+        if( targetId !== myUserId && targetId !== undefined) return;
+        if(senderUserId === myUserId) return;
+        handleReceivedAnswer(senderUserId, answer);   
+    });
+    socket.on("join-rejected", (reason) => {
+        alert("Join request rejected: " + (reason || "Host rejected your request"));
+        window.location.reload();
+    });
+
+    socket.on("user-disconnected", (userId) => {
+        console.log("User disconnected:", userId);
+        if(currentRemoteUserId === userId && remoteVideo.srcObject){
+            remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+            remoteVideo.srcObject = null;
+            currentRemoteUserId = null;
+        }
+        if(localPeerConnections){
+            localPeerConnections.close();
+            localPeerConnections = null;
+        }
+    });
+
+
+
+
+}
 
 
 
