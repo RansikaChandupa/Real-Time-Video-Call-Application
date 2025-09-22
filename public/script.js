@@ -111,7 +111,7 @@ function setUpSocketEvents(){
         console.log("Received offer from", senderUserId, "for", targetId);
         if( targetId !== myUserId && targetId !== undefined) return;
         if(senderUserId === myUserId) return;
-        handleReceivedOffer(senderUserId, offer); // I guess instructor made a mistake here. He used handleReceivedAnswer(senderUserId, answer);   
+        handleReceivedOffer(senderUserId, offer);  
     });
 
     socket.on("answer", (senderUserId, targetId, answer) => {
