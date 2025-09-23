@@ -1,3 +1,5 @@
+const e = require("cors");
+
 const socket = io();
 const startCallBtn = document.getElementById('startCall');
 const joinCallBtn = document.getElementById('joinCall');
@@ -137,11 +139,68 @@ function setUpSocketEvents(){
             localPeerConnections = null;
         }
     });
-
-
-
-
 }
 
+function createPeerConnections(){
+    if(localPeerConnections){
+        console.log("Peer connections already exist");
+        localPeerConnections.close();
+        localPeerConnections = null;
+    }
+    console.log("Creating new RTCPeerConnection");
+    localPeerConnections = new RTCPeerConnection(iceServers);
+    myStream.getTracks().forEach(track => {
+        localPeerConnections.addTrack(track, myStream);
+    });
+    localPeerConnections.onicecandidate = (event) => {
+        if(event.candidate){
+            console.log("Sending ICE candidate to remote peer");
+            socket.emit("relay-ice-candidate", roomId, myUserId, currentRemoteUserId, event.candidate);
+        }
+    };
+    localPeerConnections.onconnectionstatechange = (event) => {
+        console.log("Connection state change:", localPeerConnections.connectionState);
+        if(localPeerConnections.connectionState === "connected"){
+            console.log("Connection established. Audio enabled:", audioEnabled);
+            console.log("Audio track enabled:",myStream.getAudioTracks().map(track => ({
+                enabled: track.enable,
+                muted: track.muted,
+                id: track.id
+            })));
+        }
+    };
+    localPeerConnections.ontrack = (event) => {
+        console.log("Received remote track");
+        if(event.streams && event.streams[0]){
+            remoteVideo.srcObject = event.streams[0];
+            event.streams[0].getTracks().forEach(track =>{
+                track.enabled = true;
+            });
+            remoteVideo.play().catch(e => console.error("Error playing remote video:", e));
+        }
+    };
+    return localPeerConnections;
+}
+
+async function createAndSendOffer(targetUserId){
+    
+    try{
+        if(!localPeerConnections){
+            createPeerConnections();
+        }
+        currentRemoteUserId = targetUserId;
+        const offer = await localPeerConnections.createOffer({
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true
+        });
+        await localPeerConnections.setLocalDescription(offer);
+        socket.emit("relay-offer", roomId, myUserId, targetUserId, offer
+        );
+        console.log("Sending offer to", targetUserId);
+    }  
+    catch(error){
+        console.error("Error creating offer:", error);
+    }   
+}
 
 
