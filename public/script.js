@@ -87,7 +87,7 @@ function setUpSocketEvents(){
         createPeerConnections();
         createAndSendOffer(hostId);
     });
-    socket.on("user-request-join",(userId, hostId) => {
+    socket.on("user-request-join",(userId, roomId) => {
         if(isRoomHost){
             console.log("User requesting to join", userId);
             createJoinRequest(userId, roomId);
@@ -163,7 +163,7 @@ function createPeerConnections(){
         if(localPeerConnections.connectionState === "connected"){
             console.log("Connection established. Audio enabled:", audioEnabled);
             console.log("Audio track enabled:",myStream.getAudioTracks().map(track => ({
-                enabled: track.enable,
+                enabled: track.enabled,
                 muted: track.muted,
                 id: track.id
             })));
@@ -173,7 +173,7 @@ function createPeerConnections(){
         console.log("Received remote track");
         if(event.streams && event.streams[0]){
             remoteVideo.srcObject = event.streams[0];
-            event.streams[0].getTracks().forEach(track =>{
+            event.streams[0].getAudioTracks().forEach(track =>{
                 track.enabled = true;
             });
             remoteVideo.play().catch(e => console.error("Error playing remote video:", e));
@@ -269,6 +269,39 @@ function createJoinRequest(userId, roomId){
     });
  }
 
+ function generateRoomId(){
+    return Math.random().toString(36).substring(2, 12);
+ }
+ function generateUserId(){
+    return "user_"+ Math.random().toString(36).substring(2,10);
+ }
 
+ function copyRoomId(){
+    const roomNumberToCopy = isRoomHost ? roomNumberDisplay.textContent : activeRoomDisplay.textContent;
+    navigator.clipboard.writeText(roomNumberToCopy).then(()=>{
+        alert("Room ID copied to clipboard");
+    }).catch(err => {
+        console.error("Could not copy text: ", err);
+        alert("Failed to copy Room ID. Please copy it manually");
+    });
+ }
+ muteAudioBtn.addEventListener("click", () => {
+    audioEnabled = !audioEnabled;
+    myStream.getAudioTracks().forEach(track => {
+        track.enabled = audioEnabled;
+    });
+    muteAudioBtn.textContent = audioEnabled ? "Mute Audio" : "Unmute Audio";
+    muteAudioBtn.classList.toggle("muted", !audioEnabled);
+    console.log("Audio state changed to:", audioEnabled);
 
-
+ })
+muteVideoBtn.addEventListener("click", () => {
+    videoEnabled = !videoEnabled;
+    myStream.getVideoTracks().forEach(track => {
+        track.enabled = videoEnabled;
+    });
+    muteVideoBtn.textContent = videoEnabled ? "Mute Video" : "Unmute Video";
+    muteVideoBtn.classList.toggle("muted", !videoEnabled);
+    console.log("Video state changed to:", videoEnabled);
+});
+window.copyRoomId = copyRoomId;
