@@ -202,5 +202,73 @@ async function createAndSendOffer(targetUserId){
         console.error("Error creating offer:", error);
     }   
 }
+async function handleReceivedIceCandidate(senderUserId, candidate){
+    try{
+        if(!localPeerConnections){
+            createPeerConnections();
+        }
+        if(!candidate) return;
+        await localPeerConnections.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log("Added ICE candidate from", senderUserId);
+    }
+    catch(error){
+        console.error("Error adding received ICE candidate:", error);
+    }
+}
+async function handleReceivedOffer(senderUserId, offer){
+    try{
+        if(!localPeerConnections){
+            createPeerConnections();
+        }
+        currentRemoteUserId = senderUserId;
+        await localPeerConnections.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await localPeerConnections.createAnswer();
+        await localPeerConnections.setLocalDescription(answer);
+        socket.emit("relay-answer", roomId, myUserId, senderUserId, answer);
+        console.log("Sent answer to", senderUserId);
+    }
+    catch(error){
+       console.error("Error handling received offer:", error);
+    }
+}
+
+async function handleReceivedAnswer(senderUserId, answer){
+    try{
+        if(!localPeerConnections){
+            console.error("No local peer connection to handle answer");
+            return;
+        }
+        await localPeerConnections.setRemoteDescription(new RTCSessionDescription(answer));
+        currentRemoteUserId = senderUserId;
+        console.log("Set remote description with answer from", senderUserId);
+    }
+    catch(error){
+        console.error("Error handling received answer:", error);
+    }    
+}
+
+function createJoinRequest(userId, roomId){
+    const requestDiv = document.createElement("div");
+    requestDiv.className = "join-request";
+    requestDiv.innerHTML = `
+    <p>User is requestiong to join</p>
+    <div class="request-buttons">
+        <button class="accept-btn">Accept</button>
+        <button class="reject-btn">Reject</button>
+    </div>`
+
+    joinRequestContainer.appendChild(requestDiv);
+
+    requestDiv.querySelector(".accept-btn").addEventListener("click", () => {
+        socket.emit("approve-join", roomId, userId);
+        requestDiv.remove();
+    });
+    requestDiv.querySelector(".reject-btn").addEventListener("click", () => {
+        socket.emit("reject-join", roomId, userId, "Host rejected your request");
+        requestDiv.remove();
+    });
+ }
+
+
 
 
