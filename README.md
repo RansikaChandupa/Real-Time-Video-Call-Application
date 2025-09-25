@@ -5,7 +5,7 @@
 
 A real-time, one-on-one video call application built with modern web technologies. This project features a secure authentication system, a host-controlled room approval process, and direct peer-to-peer video/audio streaming using WebRTC.
 
-## \#\# Features
+ \#\# Features
 
   * **Secure User Authentication**: Complete login and sign-up functionality powered by Supabase.
   * **Host-Controlled Meetings**: Users can start a new meeting to become a host and generate a unique meeting ID.
@@ -17,7 +17,7 @@ A real-time, one-on-one video call application built with modern web technologie
 
 -----
 
-## \#\# Technology Stack
+ \#\# Technology Stack
 
 This project utilizes a modern web stack to achieve real-time communication:
 
@@ -29,7 +29,7 @@ This project utilizes a modern web stack to achieve real-time communication:
 
 -----
 
-## \#\# Project Structure
+ \#\# Project Structure
 
 The project is organized into a client-side `public` directory and a server-side entry point.
 
@@ -48,7 +48,7 @@ project/
 
 -----
 
-## \#\# Setup and Installation
+ \#\# Setup and Installation
 
 To run this project locally, follow these steps:
 
@@ -92,7 +92,7 @@ To run this project locally, follow these steps:
 
 -----
 
-## \#\# How It Works
+ \#\# How It Works
 
 The application relies on a signaling server to coordinate the connection between two peers before they connect directly.
 
