@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
+
     <div class="container">
-        <div class="setup-screen">
+         <div class="setup-screen">
             <h1>Video Call App</h1>
             <button id="startCall"> Start New Meeting</button>
             <div class="join-form">
@@ -19,6 +20,7 @@
                 <span id="roomNumber"></span>
                 <button id="copyBtn" onclick="copyRoomId()">Copy ID</button>
             </div>
+            <button id="logoutBtnSetup" class="logout-btn" onclick="logout()">Logout</button>
         </div>
         <div class="call-screen hidden">
             <div class="room-info">
